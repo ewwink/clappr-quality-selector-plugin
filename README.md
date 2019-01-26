@@ -10,7 +10,7 @@ It's modified version of [clappr-level-selector-plugin](https://github.com/clapp
 -  `getPlaybackQuality` function to get available quality levels, must
    be called like above. 
 - Reordering, from the bottom to top are `AUTO` to the highest quality level.   
-- `HD` icon displayed by default if playlist has HD Quality.
+- `HD` icon displayed by default if in playlist it has HD Quality.
 - Small size, 3KB gzipped.
 
 <img src="https://raw.githubusercontent.com/ewwink/clappr-quality-selector-plugin/master/clappr-quality-selector.jpg"/>
