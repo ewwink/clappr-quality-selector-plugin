@@ -47,7 +47,7 @@ var player = new Clappr.Player({
       1: 'Med', // 240kbps
       0: 'Low', // 120kbps
     },
-    defaultQuality: 0, // start with quality 0 or Low
+    defaultQuality: 0, // start with quality 0 or Lowest
     labelCallback: function(playbackLevel, customLabel) {
       return customLabel + playbackLevel.level.height + 'p'; // High 720p
     }
@@ -55,7 +55,7 @@ var player = new Clappr.Player({
   events: {
     onPlay: function() {
       setTimeout(function() {
-        player.getPlaybackQuality(2); // log the levels
+        player.getPlaybackQuality(); // log the levels
         player.setPlaybackQuality(2); // Change to highest level
       }, 10000); // fired after 10 second playing
     }
