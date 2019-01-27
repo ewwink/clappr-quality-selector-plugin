@@ -4,7 +4,7 @@
 It's modified version of [clappr-level-selector-plugin](https://github.com/clappr/clappr-level-selector-plugin) with the following **extra features**:
 
 - Persistent quality level between session.
--  `defaultQuality` options to set quality `ID` when player start or use `-1` for `AUTO`
+-  `defaultQuality` options to set quality `ID` (number) when player start or use `-1` for `AUTO`
 -  `setPlaybackQuality()` function to select quality by `ID` this method
    have to be called after `PLAYBACK_LEVELS_AVAILABLE` or media played.
 -  `getPlaybackQuality()` function to get available quality levels, must
