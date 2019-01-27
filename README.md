@@ -55,7 +55,8 @@ var player = new Clappr.Player({
   events: {
     onPlay: function() {
       setTimeout(function() {
-        player.getPlaybackQuality(); // log the levels
+        var levels = player.getPlaybackQuality();
+        console.log(levels); // log the levels
         player.setPlaybackQuality(2); // Change to highest level
       }, 10000); // fired after 10 second playing
     }
