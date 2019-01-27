@@ -7,7 +7,7 @@ It's modified version of [clappr-level-selector-plugin](https://github.com/clapp
 -  `defaultQuality` options to set quality `ID` when player start or use `-1` for `AUTO`
 -  `setPlaybackQuality()` function to select quality by `ID` this method
    have to be called after `PLAYBACK_LEVELS_AVAILABLE` or media played.
--  `getPlaybackQuality` function to get available quality levels, must
+-  `getPlaybackQuality()` function to get available quality levels, must
    be called like above. 
 - Reordering the Quality placement, from the bottom to the top are `AUTO` to the highest quality level.   
 - `HD` icon displayed by default if in playlist it has HD Quality.
