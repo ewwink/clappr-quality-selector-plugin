@@ -66,4 +66,6 @@ var player = new Clappr.Player({
 
 ## Plugin Compatibility
 
-Require Clappr v0.3.0 or above
+Require [Clappr](https://github.com/clappr/clappr) v0.3.0 or above
+
+
