@@ -24,12 +24,12 @@ Add both Clappr and Quality Selector plugin scripts to your HTML:
   <script type="text/javascript" src="//cdn.jsdelivr.net/gh/ewwink/clappr-quality-selector-plugin@latest/quality-selector.js"></script>
 ```
 
-Then just add `LevelSelector` into the list of plugins of your player instance:
+Then just add `QualitySelector` into the list of plugins of your player instance:
 
 ```javascript
 var player = new Clappr.Player({
   source: "http://your.video/here.m3u8",
-  plugins: [LevelSelector]
+  plugins: [QualitySelector]
 });
 ```
 
