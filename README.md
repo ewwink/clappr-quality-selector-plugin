@@ -4,7 +4,7 @@
 It's modified version of [clappr-level-selector-plugin](https://github.com/clappr/clappr-level-selector-plugin) with the following **extra features**:
 
 - Persistent quality level between session.
--  `defaultQuality` options to set quality when player start
+-  `defaultQuality` options to set quality `ID` when player start or use `-1` for `AUTO`
 -  `setPlaybackQuality()` function to select quality by `ID` this method
    have to be called after `PLAYBACK_LEVELS_AVAILABLE` or media played.
 -  `getPlaybackQuality` function to get available quality levels, must
@@ -29,7 +29,8 @@ Then just add `QualitySelector` into the list of plugins of your player instance
 ```javascript
 var player = new Clappr.Player({
   source: "http://your.video/here.m3u8",
-  plugins: [QualitySelector]
+  plugins: [QualitySelector],
+  qualitySelectorConfig: {defaultQuality: 0} // optional: start with quality ID 0
 });
 ```
 
