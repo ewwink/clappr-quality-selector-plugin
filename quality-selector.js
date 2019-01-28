@@ -87,8 +87,8 @@ var QualitySelector = Clappr.UICorePlugin.extend({
     },
 
     showHDIcon: function () {
-        if (this.hasHD) return;
-        this.hasHD = true;
+        if (this.HDChecked) return;
+        this.HDChecked = true;
         var levels = this.core.activePlayback._hls.levels;
         for (var i = 0; i < levels.length; i++) {
             if (levels[i].height >= 720 || (levels[i].bitrate / 1000) >= 2000) {
@@ -229,7 +229,7 @@ var QualitySelector = Clappr.UICorePlugin.extend({
 
     FIRST_START: true,
 
-    hasHD: false,
+    HDChecked: false,
 });
 
 Object.defineProperty(QualitySelector, 'name', { value: 'QualitySelector' });
