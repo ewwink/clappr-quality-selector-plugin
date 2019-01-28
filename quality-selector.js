@@ -1,53 +1,36 @@
 /*
-* Clappr Quality Selector Plugin v1.0
+* Clappr Quality Selector Plugin v2.0.0
 * modded by: ewwink
 * github: https://github.com/ewwink/clappr-quality-selector-plugin 
 */
 
-var AUTO = -1;
-var DEFAULT_QUALITY_ID = parseInt(localStorage.getItem('savedLevelId'));
-var FIRST_START = true;
-
 var QualitySelector = Clappr.UICorePlugin.extend({
     name: 'quality_selector',
-    version: '1.0',
-    pluginStyle: '<style>.quality_selector[data-quality-selector]{float:right;position:relative;height:100%}.quality_selector button{cursor:pointer;min-width:80px}.quality_selector[data-quality-selector] button{background-color:transparent;color:#fff;font-family:Roboto,"Open Sans",Arial,sans-serif;-webkit-font-smoothing:antialiased;border:none;font-size:12px;height:100%}.quality_selector[data-quality-selector] button:hover{color:#c9c9c9}.quality_selector[data-quality-selector] button.changing{-webkit-animation:pulse .5s infinite alternate}.quality_selector[data-quality-selector] > ul{list-style-type:none;position:absolute;bottom:100%;display:none;background-color:rgba(28,28,28,0.9);white-space:nowrap}.quality_selector[data-quality-selector] li{font-size:12px;color:#eee}.quality_selector[data-quality-selector] li[data-title]{background-color:#333;padding:8px 25px}.quality_selector[data-quality-selector] li a{color:#eee;padding:5px 10px;display:block;text-decoration:none}.quality_selector[data-quality-selector] li a:hover{background-color:rgba(255,255,255,0.1);color:#fff}.quality_selector[data-quality-selector] li a:hover a{color:#fff;text-decoration:none}.quality_selector[data-quality-selector] li.current a{color:#2ecc71}@-webkit-keyframes pulse{0%{color:#fff}50%{color:#ff0101}100%{color:#B80000}}.showHDIcon{display:inline-block !important}</style>',
-    attributes: {
-        'class': 'quality_selector',
-        'data-quality-selector': ''
-    },
-
-    events: {
-        'click [data-quality-selector-select]': 'onLevelSelect',
-        'click [data-quality-selector-button]': 'onShowLevelSelectMenu'
-    },
-
-    template: function (levels, title) {
-        var template = '<button data-quality-selector-button>Auto</button><ul>';
-        if (title) template += '<li data-title>' + title + '</li>';
-        for (var i = levels.length - 1; i > -1; i--) {
-            template += '<li><a href="#" data-quality-selector-select="' + levels[i].id + '">' + levels[i].label + '</a></li>';
-        }
-        template += '<li><a href="#" data-quality-selector-select="-1">AUTO</a></li>';
-        return template;
-    },
+    
+    version: '2.0',
 
     bindEvents: function () {
         this.listenTo(this.core, Clappr.Events.CORE_READY, this.bindPlaybackEvents);
         this.listenTo(this.core, Clappr.Events.CORE_ACTIVE_CONTAINER_CHANGED, this.reload);
         this.listenTo(this.core.mediaControl, Clappr.Events.MEDIACONTROL_RENDERED, this.render);
         this.listenTo(this.core.mediaControl, Clappr.Events.MEDIACONTROL_HIDE, this.hideSelectLevelMenu);
+        this.listenTo(this.core.mediaControl, Clappr.Events.MEDIACONTROL_SHOW, this.showHDIcon);
     },
 
     unBindEvents: function () {
+        var currentPlayback = this.core.activePlayback;
+
         this.stopListening(this.core, Clappr.Events.CORE_READY);
         this.stopListening(this.core, Clappr.Events.CORE_ACTIVE_CONTAINER_CHANGED);
         this.stopListening(this.core.mediaControl, Clappr.Events.MEDIACONTROL_RENDERED);
         this.stopListening(this.core.mediaControl, Clappr.Events.MEDIACONTROL_HIDE);
-        this.stopListening(this.core.activePlayback, Clappr.Events.PLAYBACK_LEVELS_AVAILABLE);
-        this.stopListening(this.core.activePlayback, Clappr.Events.PLAYBACK_LEVEL_SWITCH_START);
-        this.stopListening(this.core.activePlayback, Clappr.Events.PLAYBACK_LEVEL_SWITCH_END);
-        this.stopListening(this.core.activePlayback, Clappr.Events.PLAYBACK_BITRATE);
+        this.stopListening(this.core.mediaControl, Clappr.Events.MEDIACONTROL_SHOW);
+        this.stopListening(currentPlayback, Clappr.Events.PLAYBACK_LEVELS_AVAILABLE);
+        this.stopListening(currentPlayback, Clappr.Events.PLAYBACK_LEVEL_SWITCH_START);
+        this.stopListening(currentPlayback, Clappr.Events.PLAYBACK_LEVEL_SWITCH_END);
+        this.stopListening(currentPlayback, Clappr.Events.PLAYBACK_BITRATE);
+        this.stopListening(currentPlayback, Clappr.Events.PLAYBACK_STOP);
+        this.stopListening(currentPlayback, Clappr.Events.PLAYBACK_PLAY_INTENT);
     },
 
     bindPlaybackEvents: function () {
@@ -57,7 +40,7 @@ var QualitySelector = Clappr.UICorePlugin.extend({
         this.listenTo(currentPlayback, Clappr.Events.PLAYBACK_LEVEL_SWITCH_START, this.startLevelSwitch);
         this.listenTo(currentPlayback, Clappr.Events.PLAYBACK_LEVEL_SWITCH_END, this.stopLevelSwitch);
         this.listenTo(currentPlayback, Clappr.Events.PLAYBACK_BITRATE, this.updateCurrentLevel);
-        this.listenTo(currentPlayback, Clappr.Events.PLAYBACK_PLAY, this.playbackPlay);
+        this.listenTo(currentPlayback, Clappr.Events.PLAYBACK_PLAY_INTENT, this.playbackIntent);
         this.listenTo(currentPlayback, Clappr.Events.PLAYBACK_STOP, this.playbackStop);
 
         var playbackLevelsAvaialbeWasTriggered = currentPlayback.levels && currentPlayback.levels.length > 0;
@@ -93,20 +76,51 @@ var QualitySelector = Clappr.UICorePlugin.extend({
         return this;
     },
 
-    playbackPlay: function () {
+    template: function (levels, title) {
+        var template = '<button data-quality-selector-button>Auto</button><ul>';
+        if (title) template += '<li data-title>' + title + '</li>';
+        for (var i = levels.length - 1; i > -1; i--) {
+            template += '<li><a href="#" data-quality-selector-select="' + levels[i].id + '">' + levels[i].label + '</a></li>';
+        }
+        template += '<li><a href="#" data-quality-selector-select="-1">AUTO</a></li>';
+        return template;
+    },
+
+    showHDIcon: function () {
+        if (this.hasHD) return;
+        this.hasHD = true;
         var levels = this.core.activePlayback._hls.levels;
         for (var i = 0; i < levels.length; i++) {
             if (levels[i].height >= 720 || (levels[i].bitrate / 1000) >= 2000) {
-                $('button[data-hd-indicator]').addClass('showHDIcon');
+                $(this._options.parentId).addClass('showHDIcon');
+                break;
             }
         }
     },
-    playbackStop: function () {
-        FIRST_START = true;
+
+    playbackIntent: function () {
+        if (!this.FIRST_START) return;
+        this.FIRST_START = false;
+        this.DEFAULT_QUALITY = parseInt(localStorage.getItem('savedLevelId'));
+        var defaultQuality = this.DEFAULT_QUALITY;
+        if (isNaN(defaultQuality)) {
+            var qsConfig = this._options.qualitySelectorConfig;
+            if (qsConfig && !isNaN(qsConfig.defaultQuality))
+                defaultQuality = qsConfig.defaultQuality;
+        }
+
+        if (!isNaN(defaultQuality)) {
+            this.core.activePlayback.currentLevel = this.selectedLevelId = defaultQuality;
+        }
     },
+
+    playbackStop: function () {
+        this.FIRST_START = true;
+    },
+
     fillLevels: function (levels, initialLevel) {
         if (this.selectedLevelId === undefined)
-            this.selectedLevelId = initialLevel ? initialLevel : AUTO;
+            this.selectedLevelId = initialLevel ? initialLevel : -1;
         this.levels = levels;
         this.configureLevelsLabels();
         this.render();
@@ -124,26 +138,26 @@ var QualitySelector = Clappr.UICorePlugin.extend({
 
         if (labelCallback || hasLabels) {
             var level, label;
-            for (var levelId in this.levels) {
-                level = this.levels[levelId];
+            for (var i = 0; i < this.levels; i++) {
+                level = this.levels[i];
                 label = labels[level.id];
                 if (labelCallback)
                     level.label = labelCallback(level, label);
                 else if (label)
                     level.label = label;
-
             }
         }
     },
 
     onLevelSelect: function (event) {
         this.selectedLevelId = parseInt(event.target.dataset.qualitySelectorSelect, 10);
-        if (this.core.activePlayback.currentLevel == this.selectedLevelId) return false;
+        var hls = this.core.activePlayback._hls;
+        if (hls.nextLevel == this.selectedLevelId) return false;
         var currentId = this.selectedLevelId;
-        this.core.activePlayback.currentLevel = currentId;
+        hls.nextLevel = currentId;
         localStorage.setItem('savedLevelId', currentId);
-        this.toggleContextMenu();
 
+        this.toggleContextMenu();
         event.stopPropagation();
         return false;
     },
@@ -166,61 +180,65 @@ var QualitySelector = Clappr.UICorePlugin.extend({
 
     findLevelBy: function (id) {
         var foundLevel;
-        this.levels.forEach((level) => { if (level.id === id) foundLevel = level; });
+        this.levels.forEach(function (level) { if (level.id === id) foundLevel = level; });
         return foundLevel;
     },
 
     updateText: function (level) {
-        if (level === AUTO)
+        if (level === -1)
             this.buttonElement().text(this.currentLevel ? 'AUTO (' + this.currentLevel.label + ')' : 'AUTO');
-
-        else
-            this.buttonElement().text(this.findLevelBy(level).label);
-
+        else {
+            try {
+                this.buttonElement().text(this.findLevelBy(level).label);
+            }
+            catch (ex) {
+                localStorage.setItem('savedLevelId', '-1');
+                var currentPlayback = this.core.activePlayback;
+                currentPlayback.currentLevel = -1;
+                currentPlayback.trigger(Clappr.Events.PLAYBACK_LEVEL_SWITCH_END);
+                this.updateText(-1);
+            }
+        }
     },
+
     updateCurrentLevel: function (info) {
-        var _this = this;
-        var hls = this.core.activePlayback._hls;
-        hls.on('hlsLevelLoading', function () {
-            DEFAULT_QUALITY_ID = parseInt(localStorage.getItem('savedLevelId'));
-            if (isNaN(DEFAULT_QUALITY_ID)) {
-                var qsConfig = _this._options.qualitySelectorConfig;
-                if (qsConfig && !isNaN(qsConfig.defaultQuality))
-                    DEFAULT_QUALITY_ID = parseInt(qsConfig.defaultQuality);
-            }
-
-            if (!isNaN(DEFAULT_QUALITY_ID)) {
-                var levelCount = this.levels.length - 1;
-                if (DEFAULT_QUALITY_ID != this.currentLevel && DEFAULT_QUALITY_ID <= levelCount && FIRST_START) {
-                    FIRST_START = false;
-                    this.currentLevel = _this.selectedLevelId = DEFAULT_QUALITY_ID;
-                    _this.core.activePlayback.currentLevel = DEFAULT_QUALITY_ID;
-                    _this.core.activePlayback.trigger(Clappr.Events.PLAYBACK_LEVEL_SWITCH_END);
-                }
-            }
-
-        });
         var level = this.findLevelBy(info.level);
         this.currentLevel = level ? level : null;
         this.highlightCurrentLevel();
     },
+
     highlightCurrentLevel: function () {
         this.levelElement().removeClass('current');
         if (this.currentLevel) this.levelElement(this.currentLevel.id).addClass('current');
         this.updateText(this.selectedLevelId);
-    }
+    },
+
+    pluginStyle: '<style>.quality_selector[data-quality-selector]{float:right;position:relative;height:100%}.quality_selector button{cursor:pointer;min-width:80px}.quality_selector[data-quality-selector] button{background-color:transparent;color:#fff;font-family:Roboto,"Open Sans",Arial,sans-serif;-webkit-font-smoothing:antialiased;border:none;font-size:12px;height:100%}.quality_selector[data-quality-selector] button:hover{color:#c9c9c9}.quality_selector[data-quality-selector] button.changing{-webkit-animation:pulse .5s infinite alternate}.quality_selector[data-quality-selector] > ul{list-style-type:none;position:absolute;bottom:100%;display:none;background-color:rgba(28,28,28,0.9);white-space:nowrap}.quality_selector[data-quality-selector] li{font-size:12px;color:#eee}.quality_selector[data-quality-selector] li[data-title]{background-color:#333;padding:8px 25px}.quality_selector[data-quality-selector] li a{color:#eee;padding:5px 10px;display:block;text-decoration:none}.quality_selector[data-quality-selector] li a:hover{background-color:rgba(255,255,255,0.1);color:#fff}.quality_selector[data-quality-selector] li a:hover a{color:#fff;text-decoration:none}.quality_selector[data-quality-selector] li.current a{color:#2ecc71}@-webkit-keyframes pulse{0%{color:#fff}50%{color:#ff0101}100%{color:#B80000}}.showHDIcon button[data-hd-indicator]{display:inline-block !important}</style>',
+    
+    attributes: {
+        'class': 'quality_selector',
+        'data-quality-selector': ''
+    },
+
+    events: {
+        'click [data-quality-selector-select]': 'onLevelSelect',
+        'click [data-quality-selector-button]': 'onShowLevelSelectMenu'
+    },
+
+    DEFAULT_QUALITY: parseInt(localStorage.getItem('savedLevelId')),
+
+    FIRST_START: true,
+
+    hasHD: false,
 });
 
 Object.defineProperty(QualitySelector, 'name', { value: 'QualitySelector' });
-Object.defineProperty(QualitySelector, 'version', { value: '1.0' });
 
 Clappr.Player.prototype.setPlaybackQuality = function (id) {
-    var hls = this.getPlugin('hls');
-    var qsel = this.getPlugin('quality_selector');
-    if (id <= hls.levels.length - 1) {
-        hls.currentLevel = this.selectedLevelId = qsel.selectedLevelId = id;
-        qsel.updateCurrentLevel({ level: id });
-
+    var qs = this.getPlugin('quality_selector');
+    if (qs.levels && id <= qs.levels.length - 1) {
+        qs.selectedLevelId = this.core.activePlayback.currentLevel = id;
+        qs.updateCurrentLevel({ level: id });
     }
 };
 
