@@ -16,6 +16,10 @@ It's modified version of [clappr-level-selector-plugin](https://github.com/clapp
 
 <img src="https://raw.githubusercontent.com/ewwink/clappr-quality-selector-plugin/master/clappr-quality-selector.jpg"/>
 
+## Plugin Compatibility
+
+Require [Clappr](https://github.com/clappr/clappr) v0.3.0 or above
+
 ## Usage
 
 Add both Clappr and Quality Selector plugin scripts to your HTML:
@@ -31,7 +35,7 @@ Then just add `QualitySelector` into the list of plugins of your player instance
 var player = new Clappr.Player({
   source: "http://your.video/here.m3u8",
   plugins: [QualitySelector],
-  qualitySelectorConfig: {defaultQuality: 0} // optional: start with quality ID 0
+  // qualitySelectorConfig: {defaultQuality: 0} // start with quality ID 0 or lowest
 });
 ```
 
@@ -64,11 +68,4 @@ var player = new Clappr.Player({
   }
 });
 ```
-
-
-
-## Plugin Compatibility
-
-Require [Clappr](https://github.com/clappr/clappr) v0.3.0 or above
-
 
